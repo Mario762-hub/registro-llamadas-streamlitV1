@@ -1,18 +1,19 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime, date, time
+from datetime import datetime, date, timedelta
 import pytz
 
 st.set_page_config(page_title="Registro de Llamadas", page_icon="📞")
 
 if "llamadas" not in st.session_state:
     st.session_state.llamadas = pd.DataFrame(columns=[
-        "Fecha Llamada", "Hora Llamada", "Usuario", "Caso", "Fecha Creación Caso", 
-        "Hora Creación Caso", "Tiempo hasta llamada"
+        "Fecha Llamada", "Hora Llamada", "Usuario", "Caso", 
+        "Fecha Creación Caso", "Hora Creación Caso", "Tiempo hasta llamada"
     ])
 
 st.title("📞 Registro de llamadas")
 
+# Inputs
 usuario = st.text_input("👤 Nombre del usuario", placeholder="Ej: Enrique")
 caso = st.text_input("🧾 Número de caso", placeholder="Ej: 12345678")
 fecha_creacion = st.date_input("📅 Fecha de creación del caso", value=date.today())
@@ -22,21 +23,25 @@ hora_creacion_str = st.text_input("🕒 Hora de creación del caso (formato HH:M
 if st.button("Registrar llamada"):
     if usuario.strip() != "" and caso.strip() != "":
         try:
-            # Validar y convertir hora
-            hora_creacion = datetime.strptime(hora_creacion_str.strip(), "%H:%M:%S").time() if ":" in hora_creacion_str.strip() and len(hora_creacion_str.strip().split(":")) == 3 \
-                            else datetime.strptime(hora_creacion_str.strip(), "%H:%M").time()
-            
-            # Hora actual (Chile)
+            # Validar hora ingresada
+            hora_creacion = datetime.strptime(hora_creacion_str.strip(), "%H:%M:%S").time() \
+                if len(hora_creacion_str.strip().split(":")) == 3 \
+                else datetime.strptime(hora_creacion_str.strip(), "%H:%M").time()
+
+            # Hora actual en zona horaria Chile
             tz_cl = pytz.timezone("America/Santiago")
             now = datetime.now(tz_cl)
 
-            # Fecha+hora de creación
+            # Fecha + hora de creación combinadas
             dt_creacion = datetime.combine(fecha_creacion, hora_creacion)
             dt_creacion = tz_cl.localize(dt_creacion)
 
             # Calcular diferencia
             diferencia = now - dt_creacion
-            tiempo_str = str(diferencia).split(".")[0]
+            if diferencia.total_seconds() < 0:
+                tiempo_str = "Llamada antes de la creación del caso"
+            else:
+                tiempo_str = str(diferencia).split(".")[0]
 
             nueva_llamada = {
                 "Fecha Llamada": now.strftime("%Y-%m-%d"),
@@ -53,7 +58,8 @@ if st.button("Registrar llamada"):
                 ignore_index=True
             )
 
-            st.success(f"✅ Llamada registrada ({tiempo_str} desde la creación del caso)")
+            st.success(f"✅ Llamada registrada ({tiempo_str})")
+
         except Exception as e:
             st.error(f"❌ Hora inválida. Usa formato HH:MM o HH:MM:SS — Error: {e}")
     else:
@@ -71,5 +77,4 @@ st.download_button(
     file_name="llamadas.csv",
     mime="text/csv"
 )
-
 

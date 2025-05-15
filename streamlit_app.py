@@ -44,8 +44,9 @@ st.dataframe(st.session_state.llamadas, use_container_width=True)
 
 # Descargar CSV
 csv = st.session_state.llamadas.to_csv(index=False).encode("utf-8")
-st.download_button("📥 Descargar historial", data=csv, file_name="llamadas.csv", mime="text/csv")
-
+st.download_button(
+    label="📥 Descargar historial",
+    data=csv,
+    file_name="llamadas.csv",
     mime="text/csv"
 )
-

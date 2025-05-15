@@ -23,7 +23,7 @@ if st.button("Registrar llamada"):
     if usuario.strip() != "":
         now = datetime.now()
         nueva_llamada = {
-            "Fecha": now.strftime("%Y-%m-%d"),
+            "Fecha": now.strftime("%Y-%m-%d %H:%M:%S"),
             "Hora": now.strftime("%H:%M:%S"),
             "Usuario": usuario.strip()
         }
